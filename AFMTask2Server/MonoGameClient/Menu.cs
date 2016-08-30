@@ -29,7 +29,6 @@ namespace MonoGameClient
             buttonList.Add("Play");
             buttonList.Add("Login");
             buttonList.Add("Register");
-            buttonList.Add("Achievements");
             buttonList.Add("Exit");
         }
 
@@ -66,6 +65,11 @@ namespace MonoGameClient
                 else if (selected == 3)
                 {
                     game.Exit();
+                }
+           
+                else if (selected == 1)
+                {
+
                 }
             }
 

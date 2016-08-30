@@ -24,6 +24,11 @@ namespace MonoGameClient
         Texture2D mesTex;
         bool writeMes = false;
 
+        //Notification
+        Rectangle noteRec;
+        SimpleSprite noteTex;
+        bool WriteNote = false;
+
         //Menu
         public int currentLevel = 1;//make it the first level
         Menu MenuPart;
@@ -34,6 +39,8 @@ namespace MonoGameClient
 
         //Data
         int score;
+        string playerName = "";
+        string outcome = "";
 
         //Screen
         public static int ScreenWidth;
@@ -68,6 +75,7 @@ namespace MonoGameClient
 
             TouchPanel.EnabledGestures = GestureType.FreeDrag;
 
+            //10 Sec Message.
             connection = new HubConnection("http://localhost:49727");
             proxy = connection.CreateHubProxy("MoveCharacterHub");         
 
@@ -75,13 +83,29 @@ namespace MonoGameClient
 
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
-        }
 
+            //LeaderBoardData/Login#
+            connection.Received += Connection_Received;
+            proxy.Invoke<List<PlayerData>>("getPlayers").ContinueWith((callback) =>
+            {
+                foreach (PlayerData p in callback.Result)
+                {
+                    playerName = p.PlayerID;
+                }
+            }).Wait();
+        }
+        
         private void recieved_a_message(Point obj)
         {
             mesRec.Location = obj;
             writeMes = true;
         }
+
+        private static void Connection_Received(string obj)
+        {
+            
+        }
+
 
         protected override void Initialize()
         {
@@ -134,11 +158,16 @@ namespace MonoGameClient
                 IncreaseCollectables.Add(IncreaseScore);
             }
 
+            //10 Sec Messsage
             mesTex = Content.Load<Texture2D>("Textures/Thanks");
             if (writeMes == true)
             {
                 mesRec = new Rectangle(2000, 2000, mesTex.Width, mesTex.Height);
             }
+
+            //Notification
+            noteTex = new SimpleSprite(Content.Load<Texture2D>("Textures/Note"), new Vector2(0, 250));
+
             SoundManager.LoadSounds(Content);
         }
 
@@ -243,7 +272,9 @@ namespace MonoGameClient
 
                     if (player1.Score == 10)
                     {
+                        outcome = "Win";
                         GameState = "Score";
+
                         if (Keyboard.GetState().IsKeyDown(Keys.Enter))
                         {
                             GameState = "Menu";
@@ -253,6 +284,7 @@ namespace MonoGameClient
 
                     if (player2.Score == 10)
                     {
+                        outcome = "Lose";
                         GameState = "Score";
                         if (Keyboard.GetState().IsKeyDown(Keys.Enter))
                         {
@@ -290,7 +322,6 @@ namespace MonoGameClient
                     spriteBatch.Begin();
                     spriteBatch.Draw(leaderboard, GraphicsDevice.Viewport.Bounds, Color.White);
                     spriteBatch.End();
-                    MenuPart.Draw(spriteBatch, GraphicsDevice.Viewport);
                     break;
             }
 
@@ -299,18 +330,17 @@ namespace MonoGameClient
                     GraphicsDevice.Clear(Color.Black);
 
                     spriteBatch.Begin();
+                    foreach (var collectable in IncreaseCollectables)
+                    {
+                        noteTex.draw(spriteBatch);
+                        collectable.draw(spriteBatch);
+                    };
 
-                    spriteBatch.DrawString(InGameFont, player1.Score + "Player 1 " + player2.Score + "   Player 2", new Vector2(ScreenWidth / 2 - InGameFont.MeasureString(player1.Score + "Player 1 " + player2.Score + "   Player 2").X * 2, 0), Color.Cyan);
+                    spriteBatch.DrawString(InGameFont, player1.Score + playerName + player2.Score + " Player 2", new Vector2(ScreenWidth / 2 - InGameFont.MeasureString(player1.Score + "    Player1    " + player2.Score + " Player 2").X * 2, 0), Color.Cyan);
                     spriteBatch.Draw(middleTexture, new Rectangle(ScreenWidth / 2 - middleTexture.Width / 2, 0, middleTexture.Width, ScreenHeight), null, Color.White);
                     player1.Draw(spriteBatch);
                     player2.Draw(spriteBatch);
                     ball.Draw(spriteBatch);
-                    foreach (var collectable in IncreaseCollectables)
-                    {
-                        collectable.draw(spriteBatch);
-                    };
-
-
                     spriteBatch.End();
 
                     base.Draw(gameTime);

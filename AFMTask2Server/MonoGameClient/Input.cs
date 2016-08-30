@@ -28,6 +28,10 @@ namespace MonoGameClient
                     direction.Y += -1;
                 if (keyboardState.IsKeyDown(Keys.S))
                     direction.Y += 1;
+                if (keyboardState.IsKeyDown(Keys.A))
+                    direction.X += -1;
+                if (keyboardState.IsKeyDown(Keys.D))
+                    direction.X += 1;
             }
 
             if (playerIndex == PlayerIndex.Two)

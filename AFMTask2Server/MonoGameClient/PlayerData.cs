@@ -1,16 +1,15 @@
-﻿using System;
+﻿using Microsoft.AspNet.SignalR.Client;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace MonoGameClient
 {
-    [Serializable]
     public class PlayerData
     {
-        public Guid playerID;
-        public string GamerTag;
-        public string UserName;
-        public string clientID;
+        public string PlayerID;
+        public int score;
+        //public string UserName;
     }
 }
