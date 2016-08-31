@@ -5,6 +5,7 @@ using System;
 using Microsoft.AspNet.SignalR.Client;
 using Microsoft.Xna.Framework.Input.Touch;
 using System.Collections.Generic;
+using System.Timers;
 
 namespace MonoGameClient
 {
@@ -41,6 +42,7 @@ namespace MonoGameClient
         int score;
         string playerName = "";
         string outcome = "";
+        List<PlayerData> leaderboardList = new List<PlayerData>();
 
         //Screen
         public static int ScreenWidth;
@@ -61,7 +63,11 @@ namespace MonoGameClient
         //Collectables/LevelUps
         SimpleSprite paddleSize, IncreaseScore, breakertime;
         List<SimpleSprite> IncreaseCollectables;
-        Random r;
+        Random r = new Random();
+        Timer ct = new Timer();
+
+        //Login
+        public static bool loginBool = false;
 
         SpriteFont InGameFont;
         Texture2D middleTexture;
@@ -83,16 +89,6 @@ namespace MonoGameClient
 
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
-
-            //LeaderBoardData/Login#
-            connection.Received += Connection_Received;
-            proxy.Invoke<List<PlayerData>>("getPlayers").ContinueWith((callback) =>
-            {
-                foreach (PlayerData p in callback.Result)
-                {
-                    playerName = p.PlayerID;
-                }
-            }).Wait();
         }
         
         private void recieved_a_message(Point obj)
@@ -146,16 +142,20 @@ namespace MonoGameClient
             leaderboard = Content.Load<Texture2D>("Textures/LeaderboardScreen");
 
             //Collectables and Level ups.
-            Random r = new Random();
+            Random rand = new Random();
             Random rno = new Random();
             int randno = rno.Next(7, 12);
             int maxx = GraphicsDevice.Viewport.Width - 20;
             int maxy = GraphicsDevice.Viewport.Height - 20;
 
+            //Notification for Collectable
+            
+            Timer cAvailable = new Timer(rand.Next(1000, 90000));
             for (int i = r.Next(1, 3); i > 0; i--)
             {
                 IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
                 IncreaseCollectables.Add(IncreaseScore);
+
             }
 
             //10 Sec Messsage
@@ -186,7 +186,21 @@ namespace MonoGameClient
                 switch (GameState)
                 {
                 case "Menu":
-                    MenuPart.Update(gameTime, this);
+                        MenuPart.Update(gameTime, this);
+
+                        //LeaderBoardData/Login
+                        connection.Received += Connection_Received;
+                        if (loginBool == true)
+                        {
+                            proxy.Invoke<List<PlayerData>>("getPlayers").ContinueWith((callback) =>
+                            {
+                                foreach (PlayerData p in callback.Result)
+                                {
+                                    playerName = p.PlayerID;
+                                    
+                                }
+                            }).Wait();
+                        }
                     break;
                 }
 
@@ -293,7 +307,12 @@ namespace MonoGameClient
                         }
                     }
 
-                    base.Update(gameTime);
+                    proxy.Invoke<bool>("Note").ContinueWith((callback) =>
+                    {
+                        if(callback.Result == true)
+                    }
+                    }).Wait();
+                base.Update(gameTime);
                 }
             }
         }
@@ -307,6 +326,14 @@ namespace MonoGameClient
                 case "Menu":
                     spriteBatch.Begin();
                     spriteBatch.Draw(background, GraphicsDevice.Viewport.Bounds, Color.White);
+
+                     //If Login is selected
+                    if(loginBool == true)
+                    {
+                            spriteBatch.DrawString(InGameFont, playerName, new Vector2(150, 150), Color.White);
+                    }
+
+                    //10 Sec Message
                     if (writeMes == true)
                     {
                         spriteBatch.Draw(mesTex, mesRec, Color.White);
@@ -330,13 +357,14 @@ namespace MonoGameClient
                     GraphicsDevice.Clear(Color.Black);
 
                     spriteBatch.Begin();
+                    if()
                     foreach (var collectable in IncreaseCollectables)
                     {
                         noteTex.draw(spriteBatch);
                         collectable.draw(spriteBatch);
                     };
 
-                    spriteBatch.DrawString(InGameFont, player1.Score + playerName + player2.Score + " Player 2", new Vector2(ScreenWidth / 2 - InGameFont.MeasureString(player1.Score + "    Player1    " + player2.Score + " Player 2").X * 2, 0), Color.Cyan);
+                    spriteBatch.DrawString(InGameFont, player1.Score + "     " + playerName + "     " + player2.Score + " Player 2", new Vector2(ScreenWidth / 2 - InGameFont.MeasureString(player1.Score + playerName + player2.Score + " Player 2").X * 2, 0), Color.White);
                     spriteBatch.Draw(middleTexture, new Rectangle(ScreenWidth / 2 - middleTexture.Width / 2, 0, middleTexture.Width, ScreenHeight), null, Color.White);
                     player1.Draw(spriteBatch);
                     player2.Draw(spriteBatch);

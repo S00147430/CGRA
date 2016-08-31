@@ -69,7 +69,7 @@ namespace MonoGameClient
            
                 else if (selected == 1)
                 {
-
+                    Game1.loginBool = true;
                 }
             }
 

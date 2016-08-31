@@ -21,18 +21,24 @@ namespace MonoGameClient
         {
                 new PlayerData { PlayerID = "player1", score = 0 },
                 new PlayerData { PlayerID = "player2", score = 0 },
+                new PlayerData { PlayerID = "player3", score = 0 },
         };
     }
 
     public class MoveCharacterHub : Hub
     {
         static Timer t, c = new Timer();
+        bool incBool = false;
         public MoveCharacterHub() : base()
         {
             Random rand = new Random();
-            //c.Elapsed += C_Elapsed;
-            //c = new Timer(rand.Next(1000, 90000));
-            //c.Start();
+            c.Elapsed += C_Elapsed;
+            c = new Timer(rand.Next(1000, 90000));
+            
+            if (incBool == true)
+            {
+                c.Start();
+            }
 
             t = new Timer(10000);
             t.Elapsed += T_Elasped;
@@ -42,28 +48,36 @@ namespace MonoGameClient
         private void T_Elasped(object sender, ElapsedEventArgs e)
         {
             Random r = new Random();
-            int x, y;
-            x = r.Next(0, 500);
-            y = r.Next(0, 500);
+            int x, y, end = 0;
 
-            Point pos = new Point(x, y);
+            Point pos = new Point(300, 300);
 
-            Clients.All.BroadcastMessage(pos);
+            while (end != 1)
+            {
+                Clients.All.BroadcastMessage(pos);
+                end++;
+            }
         }
 
-        //private void C_Elapsed(object sender, ElapsedEventArgs e)
-        //{
-        //    Vector2 i;
-        //    i = new Vector2(0, 500);
+        private void C_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            
+        }
 
-        //    Point incPos = new Point(Convert.ToInt32(i));
-        //    bool incBool = true;
+        public void note()
+        {
+            Vector2 i;
+            i = new Vector2(0, 500);
 
-        //    Clients.All.BroadcastMessage(incPos);
-        //    Clients.All.BroadcastMessage(incBool);
-        //}
+            Point incPos = new Point(Convert.ToInt32(i));
 
-       
+            if (incBool == true)
+            {
+                Clients.All.BroadcastMessage(incPos);
+            }
+        }
+
+
 
         public void sendPlayers()
         {
