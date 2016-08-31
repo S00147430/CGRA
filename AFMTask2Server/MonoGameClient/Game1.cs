@@ -330,13 +330,23 @@ namespace MonoGameClient
                         //}
                     }
 
+                    //Notification
+                    proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+                    {
+                        foreach (Check c in callback.Result)
+                        {
+                            WriteNote = c.WriteNote;
+                            noteRec.Location = c.PosNote;
+                        }
+                    }).Wait();
+
                     //Notification for Collectable
                     if (gameTime.TotalGameTime - previousSpawnTime > collectableSpawnTime)
                     {
                         previousSpawnTime = gameTime.TotalGameTime;
                         var spawnSeconds = rand.Next(1, 10);
                         collectableSpawnTime = TimeSpan.FromSeconds(spawnSeconds);
-                        for (int i = r.Next(1, 3); i > 0; i--)
+                        for (int i = r.Next(1, 5); i > 0; i--)
                         {
                             IncreaseCollectables.Add(IncreaseScore);
                         }
@@ -397,10 +407,15 @@ namespace MonoGameClient
                     player2.Draw(spriteBatch);
                     ball.Draw(spriteBatch);
 
-                    if (WriteNote == true)
+                    while (WriteNote == true)
                     {
+                        noteTimer.Start();
                         spriteBatch.Draw(noteTex, noteRec, Color.White);
                         colectableTimer.Start();
+                        if (noteTimer == new Timer(3000))
+                        {
+                            WriteNote = false;
+                        }
                     }
 
                     foreach (var collectable in IncreaseCollectables)
