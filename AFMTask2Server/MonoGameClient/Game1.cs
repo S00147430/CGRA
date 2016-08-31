@@ -20,16 +20,6 @@ namespace MonoGameClient
         //SignalR
         HubConnection connection;
 
-        //10 Second Message
-        Rectangle mesRec;
-        Texture2D mesTex;
-        bool writeMes = false;
-
-        //Notification
-        Rectangle noteRec;
-        SimpleSprite noteTex;
-        bool WriteNote = false;
-
         //Menu
         public int currentLevel = 1;//make it the first level
         Menu MenuPart;
@@ -42,6 +32,7 @@ namespace MonoGameClient
         int score;
         string playerName = "";
         string outcome = "";
+        int collectableInteraction;
         List<PlayerData> leaderboardList = new List<PlayerData>();
 
         //Screen
@@ -64,7 +55,18 @@ namespace MonoGameClient
         SimpleSprite paddleSize, IncreaseScore, breakertime;
         List<SimpleSprite> IncreaseCollectables;
         Random r = new Random();
-        Timer ct = new Timer();
+        Timer colectableTimer = new Timer();
+        Timer noteTimer = new Timer();
+
+        //10 Second Message
+        Rectangle mesRec;
+        Texture2D mesTex;
+        bool writeMes = false;
+
+        //Notification
+        Rectangle noteRec;
+        Texture2D noteTex;
+        bool WriteNote = false;
 
         //Login
         public static bool loginBool = false;
@@ -83,14 +85,24 @@ namespace MonoGameClient
 
             //10 Sec Message.
             connection = new HubConnection("http://localhost:49727");
-            proxy = connection.CreateHubProxy("MoveCharacterHub");         
+            proxy = connection.CreateHubProxy("MoveCharacterHub");
 
             connection.Start().Wait();
 
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
+
+            //Notification
+            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+            {
+                foreach (Check c in callback.Result)
+                {
+                    WriteNote = c.WriteNote;
+                    noteRec.Location = c.PosNote;
+                }
+            }).Wait();
         }
-        
+
         private void recieved_a_message(Point obj)
         {
             mesRec.Location = obj;
@@ -99,7 +111,7 @@ namespace MonoGameClient
 
         private static void Connection_Received(string obj)
         {
-            
+
         }
 
 
@@ -149,31 +161,28 @@ namespace MonoGameClient
             int maxy = GraphicsDevice.Viewport.Height - 20;
 
             //Notification for Collectable
-            
+
             Timer cAvailable = new Timer(rand.Next(1000, 90000));
             for (int i = r.Next(1, 3); i > 0; i--)
             {
                 IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
                 IncreaseCollectables.Add(IncreaseScore);
-
             }
 
             //10 Sec Messsage
             mesTex = Content.Load<Texture2D>("Textures/Thanks");
-            if (writeMes == true)
-            {
-                mesRec = new Rectangle(2000, 2000, mesTex.Width, mesTex.Height);
-            }
 
             //Notification
-            noteTex = new SimpleSprite(Content.Load<Texture2D>("Textures/Note"), new Vector2(0, 250));
+            noteTex = Content.Load<Texture2D>("Textures/Note");
+            colectableTimer = new Timer(10000);
+            noteTimer = new Timer(5000);
 
             SoundManager.LoadSounds(Content);
         }
 
         protected override void UnloadContent()
         {
-            
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -185,7 +194,7 @@ namespace MonoGameClient
             {
                 switch (GameState)
                 {
-                case "Menu":
+                    case "Menu":
                         MenuPart.Update(gameTime, this);
 
                         //LeaderBoardData/Login
@@ -197,7 +206,7 @@ namespace MonoGameClient
                                 foreach (PlayerData p in callback.Result)
                                 {
                                     playerName = p.PlayerID;
-                                    
+                                    score = p.score;
                                 }
                             }).Wait();
                         }
@@ -263,12 +272,13 @@ namespace MonoGameClient
                         {
                             collectable.visible = false;
                             player1.Score++;
+                            collectableInteraction += 1;
                         }
 
                         if (collectable.visible && collectable.BoundingRect.Intersects(player2.Bounds))
                         {
                             collectable.visible = false;
-                            player2.Score++;;
+                            player2.Score++; ;
                         }
                     }
 
@@ -287,93 +297,101 @@ namespace MonoGameClient
                     if (player1.Score == 10)
                     {
                         outcome = "Win";
+                        score = player1.Score;
                         GameState = "Score";
 
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter))
-                        {
-                            GameState = "Menu";
-                            MenuPart.Update(gameTime, this);
-                        }
+                        //if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+                        //{
+                        //    GameState = "Menu";
+                        //    MenuPart.Update(gameTime, this);
+                        //}
                     }
 
                     if (player2.Score == 10)
                     {
                         outcome = "Lose";
+                        score = player1.Score;
                         GameState = "Score";
-                        if (Keyboard.GetState().IsKeyDown(Keys.Enter))
-                        {
-                            GameState = "Menu";
-                            MenuPart.Update(gameTime, this);
-                        }
+
+                        //if (Keyboard.GetState().IsKeyDown(Keys.Enter))
+                        //{
+                        //    GameState = "Menu";
+                        //    MenuPart.Update(gameTime, this);
+                        //}
                     }
 
-                    proxy.Invoke<bool>("Note").ContinueWith((callback) =>
-                    {
-                        if(callback.Result == true)
-                    }
-                    }).Wait();
-                base.Update(gameTime);
+                    base.Update(gameTime);
                 }
             }
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            if(GameState != "Ended")
-            { 
-            switch (GameState)
+            if (GameState != "Ended")
             {
-                case "Menu":
-                    spriteBatch.Begin();
-                    spriteBatch.Draw(background, GraphicsDevice.Viewport.Bounds, Color.White);
+                switch (GameState)
+                {
+                    case "Menu":
+                        spriteBatch.Begin();
+                        spriteBatch.Draw(background, GraphicsDevice.Viewport.Bounds, Color.White);
 
-                     //If Login is selected
-                    if(loginBool == true)
-                    {
+                        //If Login is selected
+                        if (loginBool == true)
+                        {
                             spriteBatch.DrawString(InGameFont, playerName, new Vector2(150, 150), Color.White);
-                    }
+                        }
 
-                    //10 Sec Message
-                    if (writeMes == true)
-                    {
-                        spriteBatch.Draw(mesTex, mesRec, Color.White);
-                    }
-                    spriteBatch.End();
-                    MenuPart.Draw(spriteBatch, GraphicsDevice.Viewport);
-                    break;
-            }
+                        //10 Sec Message
+                        if (writeMes == true)
+                        {
+                            spriteBatch.Draw(mesTex, mesRec, Color.White);
+                        }
+                        spriteBatch.End();
 
-            switch(GameState)
-            {
-                case "Score":
-                    spriteBatch.Begin();
-                    spriteBatch.Draw(leaderboard, GraphicsDevice.Viewport.Bounds, Color.White);
-                    spriteBatch.End();
-                    break;
-            }
+                        MenuPart.Draw(spriteBatch, GraphicsDevice.Viewport);
+                        break;
+                }              
 
                 if (GameState == null)
                 {
                     GraphicsDevice.Clear(Color.Black);
 
                     spriteBatch.Begin();
-                    if()
-                    foreach (var collectable in IncreaseCollectables)
-                    {
-                        noteTex.draw(spriteBatch);
-                        collectable.draw(spriteBatch);
-                    };
-
-                    spriteBatch.DrawString(InGameFont, player1.Score + "     " + playerName + "     " + player2.Score + " Player 2", new Vector2(ScreenWidth / 2 - InGameFont.MeasureString(player1.Score + playerName + player2.Score + " Player 2").X * 2, 0), Color.White);
+                    spriteBatch.DrawString(InGameFont, player1.Score + " " + playerName + "   " + player2.Score + " Player 2/COM", new Vector2(ScreenWidth / 2 
+                        - InGameFont.MeasureString(player1.Score + playerName + player2.Score + "      Player 2").X, 0), Color.White);
                     spriteBatch.Draw(middleTexture, new Rectangle(ScreenWidth / 2 - middleTexture.Width / 2, 0, middleTexture.Width, ScreenHeight), null, Color.White);
                     player1.Draw(spriteBatch);
                     player2.Draw(spriteBatch);
                     ball.Draw(spriteBatch);
+
+                    if (WriteNote == true)
+                    {
+                        spriteBatch.Draw(noteTex, noteRec, Color.White);
+                        colectableTimer.Start();
+                    }
+
+                    foreach (var collectable in IncreaseCollectables)
+                    {
+                        collectable.draw(spriteBatch);
+                    }
+
                     spriteBatch.End();
 
                     base.Draw(gameTime);
                 }
+
+                switch (GameState)
+                {
+                    case "Score":
+                        spriteBatch.Begin();
+                        spriteBatch.Draw(leaderboard, GraphicsDevice.Viewport.Bounds, Color.White);
+                        spriteBatch.DrawString(InGameFont, playerName + " Score " + Convert.ToInt32(score) + " Outcome: " + outcome + " Collectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
+                        spriteBatch.End();
+                        break;
+                }
+
             }
         }
     }
 }
+

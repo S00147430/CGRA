@@ -12,16 +12,26 @@ namespace MonoGameClient
     {
         public string PlayerID;
         public int score;
-        //public string UserName;
+        public string outcome;
+        public int collectableInteractions;
+    }
+
+    public class Check
+    {
+        public bool WriteNote;
+        public Point PosNote;
     }
 
     public static class HubState
     {
         public static List<PlayerData> players = new List<PlayerData>()
         {
-                new PlayerData { PlayerID = "player1", score = 0 },
-                new PlayerData { PlayerID = "player2", score = 0 },
-                new PlayerData { PlayerID = "player3", score = 0 },
+                new PlayerData { PlayerID = "Player User", score = 0 },
+        };
+
+        public static List<Check> Notes = new List<Check>()
+        {
+            new Check { WriteNote = true, PosNote = new Point(20, 20)},
         };
     }
 
@@ -47,16 +57,11 @@ namespace MonoGameClient
 
         private void T_Elasped(object sender, ElapsedEventArgs e)
         {
-            Random r = new Random();
-            int x, y, end = 0;
+            int end = 0;
+            Point pos = new Point(20, 20);
 
-            Point pos = new Point(300, 300);
-
-            while (end != 1)
-            {
-                Clients.All.BroadcastMessage(pos);
-                end++;
-            }
+            Clients.All.BroadcastMessage(pos);
+            end++;
         }
 
         private void C_Elapsed(object sender, ElapsedEventArgs e)
@@ -64,20 +69,23 @@ namespace MonoGameClient
             
         }
 
-        public void note()
+        //public void note()
+        //{
+        //    Vector2 i;
+        //    i = new Vector2(200, 500);
+
+        //    Point incPos = new Point(Convert.ToInt32(i));
+
+        //    if (incBool == true)
+        //    {
+        //        Clients.All.BroadcastMessage(incPos);
+        //    }
+        //}
+
+        public List<Check> getNote()
         {
-            Vector2 i;
-            i = new Vector2(0, 500);
-
-            Point incPos = new Point(Convert.ToInt32(i));
-
-            if (incBool == true)
-            {
-                Clients.All.BroadcastMessage(incPos);
-            }
+            return HubState.Notes;
         }
-
-
 
         public void sendPlayers()
         {

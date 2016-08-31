@@ -10,6 +10,13 @@ namespace MonoGameClient
     {
         public string PlayerID;
         public int score;
-        //public string UserName;
+        public string outcome;
+        public int collectableInteractions;
+
+        public static List<PlayerData> players = new List<PlayerData>()
+        {
+               
+        };
+
     }
 }
