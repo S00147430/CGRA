@@ -60,6 +60,10 @@ namespace MonoGameClient
         Timer noteTimer = new Timer();
         Timer gameTimer = new Timer();
         TimeSpan previousSpawnTime, collectableSpawnTime;
+        float notificationTime;
+        bool notificationIsVisible;
+        bool notificationTimeOut;
+        int notificationTimerCounter = 0;
 
         //10 Second Message
         Rectangle mesRec;
@@ -103,19 +107,44 @@ namespace MonoGameClient
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
 
-            //Notification
-            //previousSpawnTime = new TimeSpan(0);
-            //collectableSpawnTime = new TimeSpan(15);
+            noteTimer.Elapsed += NoteTimer_Elapsed;
 
-            //////Notification
-            //proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+            //Notification This code was firing before but after I used it in the update section it just halts the gameplay.
+            //if (WriteNote == false)
             //{
-            //    foreach (Check c in callback.Result)
+            //    //Notification
+            //    connection.Received += Connection_Received;
+            //    proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
             //    {
-            //        WriteNote = c.WriteNote;
-            //        noteRec.Location = c.PosNote;
-            //    }
-            //}).Wait();
+            //        foreach (Check c in callback.Result)
+            //        {
+            //            WriteNote = c.WriteNote;
+            //            noteRec.Location = c.PosNote;
+            //        }
+            //    }).Wait();
+            //}
+
+            //Made another class to check it.
+            //if (WriteNote == false)
+            //{
+            //    Notification
+            //    connection.Received += Connection_Received;
+            //    proxy.Invoke<List<Check2>>("getNote2").ContinueWith((callback) =>
+            //    {
+            //        foreach (Check2 c in callback.Result)
+            //        {
+            //            WriteNote = c.WriteNote;
+            //            noteRec.Location = c.PosNote;
+            //        }
+            //    }).Wait();
+            //}
+        }
+
+        private void NoteTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            noteTimer = new Timer(3000);
+            notificationTimeOut = true;
+            notificationTimerCounter += 5;
         }
 
         private void recieved_a_message(Point obj)
@@ -354,7 +383,7 @@ namespace MonoGameClient
                         //}
                     }
 
-                    //Notification for Collectable
+                    //Notification for Collectable This broke the code and made it halt.
                     //if (gameTime.TotalGameTime - previousSpawnTime > collectableSpawnTime)
                     //{
                     //    previousSpawnTime = gameTime.TotalGameTime;
@@ -377,9 +406,19 @@ namespace MonoGameClient
 
                     //    }
                     //}
-                        //}
+                    //}
+                    //
+
+                    //if (notificationTimerCounter == 5)
+                    //{
+                    //    notificationIsVisible = true;
                     //}
 
+                    //if (notificationTimerCounter == 6)
+                    //{
+                    //    notificationIsVisible = false;
+                    //    notificationTimeOut = true;
+                    //}
 
                     if (!File.Exists(path))
                     {
@@ -436,6 +475,20 @@ namespace MonoGameClient
                     player2.Draw(spriteBatch);
                     ball.Draw(spriteBatch);
 
+                    //if (notificationIsVisible == true)
+                    //{
+                    //    spriteBatch.Draw(noteTex, noteRec, Color.White);
+                    //    noteTimer.Start();
+                    //}
+
+                    //if (notificationTimeOut == true)
+                    //{
+                    //    foreach (var collectable in IncreaseCollectables)
+                    //    {
+                    //        collectable.draw(spriteBatch);
+                    //    }
+                    //}
+
                     while (WriteNote == true)
                     {
                         noteTimer.Start();
@@ -462,7 +515,7 @@ namespace MonoGameClient
                     case "Score":
                         spriteBatch.Begin();
                         spriteBatch.Draw(leaderboard, GraphicsDevice.Viewport.Bounds, Color.White);
-                        spriteBatch.DrawString(InGameFont,"Usermame:" + playerName + "  Score: " + Convert.ToInt32(score) + "  Outcome: " + outcome + "  Collectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
+                        spriteBatch.DrawString(InGameFont,"Usermame: " + playerName + "  Score: " + Convert.ToInt32(score) + "  Outcome: " + outcome + "  Collectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
                         spriteBatch.End();
                         break;
                 }

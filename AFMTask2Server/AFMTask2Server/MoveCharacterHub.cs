@@ -22,6 +22,12 @@ namespace MonoGameClient
         public Point PosNote;
     }
 
+    public class Check2
+    {
+        public bool WriteNote;
+        public Point PosNote;
+    }
+
     public static class HubState
     {
         public static List<PlayerData> players = new List<PlayerData>()
@@ -31,6 +37,11 @@ namespace MonoGameClient
         };
 
         public static List<Check> Notes = new List<Check>()
+        {
+            new Check { WriteNote = true, PosNote = new Point(20, 20)},
+        };
+
+        public static List<Check> Notes2 = new List<Check>()
         {
             new Check { WriteNote = true, PosNote = new Point(20, 20)},
         };
@@ -90,6 +101,11 @@ namespace MonoGameClient
         public List<Check> getNote()
         {
             return HubState.Notes;
+        }
+
+        public List<Check> getNote2()
+        {
+            return HubState.Notes2;
         }
 
         public void sendPlayers()

@@ -41,6 +41,7 @@
     <Compile Include="Ball.cs" />
     <Compile Include="Button.cs" />
     <Compile Include="Check.cs" />
+    <Compile Include="Check2.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="GameObject.cs" />
     <Compile Include="Input.cs" />
