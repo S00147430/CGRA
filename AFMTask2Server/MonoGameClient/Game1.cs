@@ -55,8 +55,11 @@ namespace MonoGameClient
         SimpleSprite paddleSize, IncreaseScore, breakertime;
         List<SimpleSprite> IncreaseCollectables;
         Random r = new Random();
+        Random rand = new Random();
         Timer colectableTimer = new Timer();
         Timer noteTimer = new Timer();
+        Timer gameTimer = new Timer();
+        TimeSpan previousSpawnTime, collectableSpawnTime;
 
         //10 Second Message
         Rectangle mesRec;
@@ -99,16 +102,6 @@ namespace MonoGameClient
 
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
-
-            //Notification
-            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
-            {
-                foreach (Check c in callback.Result)
-                {
-                    WriteNote = c.WriteNote;
-                    noteRec.Location = c.PosNote;
-                }
-            }).Wait();
         }
 
         private void recieved_a_message(Point obj)
@@ -167,15 +160,7 @@ namespace MonoGameClient
             int randno = rno.Next(7, 12);
             int maxx = GraphicsDevice.Viewport.Width - 20;
             int maxy = GraphicsDevice.Viewport.Height - 20;
-
-            //Notification for Collectable
-
-            Timer cAvailable = new Timer(rand.Next(1000, 90000));
-            for (int i = r.Next(1, 3); i > 0; i--)
-            {
-                IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
-                IncreaseCollectables.Add(IncreaseScore);
-            }
+            IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
 
             //10 Sec Messsage
             mesTex = Content.Load<Texture2D>("Textures/Thanks");
@@ -345,6 +330,18 @@ namespace MonoGameClient
                         //}
                     }
 
+                    //Notification for Collectable
+                    if (gameTime.TotalGameTime - previousSpawnTime > collectableSpawnTime)
+                    {
+                        previousSpawnTime = gameTime.TotalGameTime;
+                        var spawnSeconds = rand.Next(1, 10);
+                        collectableSpawnTime = TimeSpan.FromSeconds(spawnSeconds);
+                        for (int i = r.Next(1, 3); i > 0; i--)
+                        {
+                            IncreaseCollectables.Add(IncreaseScore);
+                        }
+                    }
+
                     if (!File.Exists(path))
                     {
                         // Create a file to write to.                     
@@ -374,7 +371,7 @@ namespace MonoGameClient
 
                         if (AchievementsBool == true)
                         {
-                            spriteBatch.DrawString(InGameFont, playerName + "\nScore:" + Convert.ToInt32(score) + "\nLast Outcome: " + outcome + "\nCollectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
+                            spriteBatch.DrawString(InGameFont, "Username:" + playerName + "\nScore:" + Convert.ToInt32(score) + "\nLast Outcome: " + outcome + "\nCollectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
                         }
 
                         //10 Sec Message
