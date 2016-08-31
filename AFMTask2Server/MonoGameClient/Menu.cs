@@ -72,6 +72,11 @@ namespace MonoGameClient
                 {
                     Game1.loginBool = true;
                 }
+
+                else if (selected == 3)
+                {
+                    Game1.AchievementsBool = true;
+                }
             }
 
             if (CheckKeyboard(Keys.Back))

@@ -26,7 +26,8 @@ namespace MonoGameClient
     {
         public static List<PlayerData> players = new List<PlayerData>()
         {
-                new PlayerData { PlayerID = "Player User", score = 0 },
+                new PlayerData { PlayerID = "Player User", score = 20, outcome = "Win", collectableInteractions = 25},
+                new PlayerData { PlayerID = "Player User", score = 20, outcome = "Win", collectableInteractions = 25},
         };
 
         public static List<Check> Notes = new List<Check>()
@@ -58,10 +59,14 @@ namespace MonoGameClient
         private void T_Elasped(object sender, ElapsedEventArgs e)
         {
             int end = 0;
-            Point pos = new Point(20, 20);
+            int x, y;
+            Random r = new Random();
+            x = r.Next(0, 500);
+            y = r.Next(0, 500);
+
+            Point pos = new Point(x, y);
 
             Clients.All.BroadcastMessage(pos);
-            end++;
         }
 
         private void C_Elapsed(object sender, ElapsedEventArgs e)

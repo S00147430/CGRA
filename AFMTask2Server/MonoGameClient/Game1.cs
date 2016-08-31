@@ -6,12 +6,12 @@ using Microsoft.AspNet.SignalR.Client;
 using Microsoft.Xna.Framework.Input.Touch;
 using System.Collections.Generic;
 using System.Timers;
+using System.IO;
 
 namespace MonoGameClient
 {
     public class Game1 : Game
     {
-        Texture2D leaderboard;
         Rectangle rec;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
@@ -33,7 +33,7 @@ namespace MonoGameClient
         string playerName = "";
         string outcome = "";
         int collectableInteraction;
-        List<PlayerData> leaderboardList = new List<PlayerData>();
+        public List<PlayerData> leaderboardList = new List<PlayerData>();
 
         //Screen
         public static int ScreenWidth;
@@ -44,7 +44,7 @@ namespace MonoGameClient
         const int PADDLE_OFFSET = 70;
         const float KEYBOARD_PADDLE_SPEED = 10f;
         const float SPIN = 2.5f;
-        float comSpeed = 0.5f;
+        float comSpeed = 0.56f;
 
         //ClassObjects
         Player player1;
@@ -70,6 +70,14 @@ namespace MonoGameClient
 
         //Login
         public static bool loginBool = false;
+
+        //Achievments
+        public static bool AchievementsBool = false;
+
+        //LeaderBoard
+        Texture2D leaderboard;
+        string path = @"D:\AFMTask2Server\PlayerData.txt";
+        string readData;
 
         SpriteFont InGameFont;
         Texture2D middleTexture;
@@ -171,9 +179,11 @@ namespace MonoGameClient
 
             //10 Sec Messsage
             mesTex = Content.Load<Texture2D>("Textures/Thanks");
+            mesRec = new Rectangle(100, 100, mesTex.Width, mesTex.Height);
 
             //Notification
             noteTex = Content.Load<Texture2D>("Textures/Note");
+            noteRec = new Rectangle(100, 100, noteTex.Width, noteTex.Height);
             colectableTimer = new Timer(10000);
             noteTimer = new Timer(5000);
 
@@ -207,10 +217,25 @@ namespace MonoGameClient
                                 {
                                     playerName = p.PlayerID;
                                     score = p.score;
+                                    outcome = p.outcome;
+                                    collectableInteraction = p.collectableInteractions;
                                 }
                             }).Wait();
                         }
-                    break;
+
+                        //if (loginBool == true)
+                        //{
+                        //    proxy.Invoke<List<PlayerData>>("getPlayers").ContinueWith((callback) =>
+                        //    {
+                        //        foreach (PlayerData p in callback.Result)
+                        //        {
+                        //            p = new PlayerData { PlayerID = "Player User", score = 0, outcome = null, collectableInteractions = 0 },
+                                    
+                                    
+                        //        };
+                        //    }).Wait();
+                        //}
+                        break;
                 }
 
                 if (GameState == null)
@@ -320,6 +345,12 @@ namespace MonoGameClient
                         //}
                     }
 
+                    if (!File.Exists(path))
+                    {
+                        // Create a file to write to.                     
+                        File.WriteAllText(path, playerName + " Score " + Convert.ToInt32(score) + " Outcome: " + outcome + " Collectable Interactions: " + Convert.ToInt32(collectableInteraction));
+                        readData = File.ReadAllText(path);
+                    }
                     base.Update(gameTime);
                 }
             }
@@ -339,6 +370,11 @@ namespace MonoGameClient
                         if (loginBool == true)
                         {
                             spriteBatch.DrawString(InGameFont, playerName, new Vector2(150, 150), Color.White);
+                        }
+
+                        if (AchievementsBool == true)
+                        {
+                            spriteBatch.DrawString(InGameFont, playerName + "\nScore:" + Convert.ToInt32(score) + "\nLast Outcome: " + outcome + "\nCollectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
                         }
 
                         //10 Sec Message
@@ -385,7 +421,7 @@ namespace MonoGameClient
                     case "Score":
                         spriteBatch.Begin();
                         spriteBatch.Draw(leaderboard, GraphicsDevice.Viewport.Bounds, Color.White);
-                        spriteBatch.DrawString(InGameFont, playerName + " Score " + Convert.ToInt32(score) + " Outcome: " + outcome + " Collectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
+                        spriteBatch.DrawString(InGameFont,"Usermame:" + playerName + "  Score: " + Convert.ToInt32(score) + "  Outcome: " + outcome + "  Collectable Interactions: " + Convert.ToInt32(collectableInteraction), new Vector2(150, 150), Color.White);
                         spriteBatch.End();
                         break;
                 }
