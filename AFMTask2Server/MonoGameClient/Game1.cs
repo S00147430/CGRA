@@ -104,18 +104,18 @@ namespace MonoGameClient
             proxy.On("BroadcastMessage", SendMessagerecieved);
 
             //Notification
-            previousSpawnTime = new TimeSpan(0);
-            collectableSpawnTime = new TimeSpan(15);
+            //previousSpawnTime = new TimeSpan(0);
+            //collectableSpawnTime = new TimeSpan(15);
 
-            ////Notification
-            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
-            {
-                foreach (Check c in callback.Result)
-                {
-                    WriteNote = c.WriteNote;
-                    noteRec.Location = c.PosNote;
-                }
-            }).Wait();
+            //////Notification
+            //proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+            //{
+            //    foreach (Check c in callback.Result)
+            //    {
+            //        WriteNote = c.WriteNote;
+            //        noteRec.Location = c.PosNote;
+            //    }
+            //}).Wait();
         }
 
         private void recieved_a_message(Point obj)
@@ -225,6 +225,11 @@ namespace MonoGameClient
                                     collectableInteraction = p.collectableInteractions;
                                 }
                             }).Wait();
+                        }
+
+                        else
+                        {
+                            playerName = "Guest";
                         }
 
                         //if (loginBool == true)
