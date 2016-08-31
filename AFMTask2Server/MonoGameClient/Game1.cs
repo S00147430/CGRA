@@ -102,6 +102,10 @@ namespace MonoGameClient
 
             Action<Point> SendMessagerecieved = recieved_a_message;
             proxy.On("BroadcastMessage", SendMessagerecieved);
+
+            //Notification
+            previousSpawnTime = new TimeSpan(0);
+            collectableSpawnTime = new TimeSpan(15);
         }
 
         private void recieved_a_message(Point obj)
@@ -171,6 +175,20 @@ namespace MonoGameClient
             noteRec = new Rectangle(100, 100, noteTex.Width, noteTex.Height);
             colectableTimer = new Timer(10000);
             noteTimer = new Timer(5000);
+
+            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+                {
+                    foreach (Check c in callback.Result)
+                    {
+                        WriteNote = c.WriteNote;
+                        noteRec.Location = c.PosNote;
+                    }
+                }).Wait();
+
+            for (int i = r.Next(1, 5); i > 0; i--)
+            {
+                IncreaseCollectables.Add(IncreaseScore);
+            }
 
             SoundManager.LoadSounds(Content);
         }
@@ -330,27 +348,32 @@ namespace MonoGameClient
                         //}
                     }
 
-                    //Notification
-                    proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
-                    {
-                        foreach (Check c in callback.Result)
-                        {
-                            WriteNote = c.WriteNote;
-                            noteRec.Location = c.PosNote;
-                        }
-                    }).Wait();
-
                     //Notification for Collectable
-                    if (gameTime.TotalGameTime - previousSpawnTime > collectableSpawnTime)
-                    {
-                        previousSpawnTime = gameTime.TotalGameTime;
-                        var spawnSeconds = rand.Next(1, 10);
-                        collectableSpawnTime = TimeSpan.FromSeconds(spawnSeconds);
-                        for (int i = r.Next(1, 5); i > 0; i--)
-                        {
-                            IncreaseCollectables.Add(IncreaseScore);
-                        }
-                    }
+                    //if (gameTime.TotalGameTime - previousSpawnTime > collectableSpawnTime)
+                    //{
+                    //    previousSpawnTime = gameTime.TotalGameTime;
+                    //    var spawnSeconds = (10);
+                    //    collectableSpawnTime = TimeSpan.FromSeconds(spawnSeconds);
+                    //if (WriteNote == false)
+                    //{
+                    //    proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+                    //    {
+                    //        foreach (Check c in callback.Result)
+                    //        {
+                    //            WriteNote = c.WriteNote;
+                    //            noteRec.Location = c.PosNote;
+                    //        }
+                    //    }).Wait();
+
+                    //    for (int i = r.Next(1, 5); i > 0; i--)
+                    //    {
+                    //        IncreaseCollectables.Add(IncreaseScore);
+
+                    //    }
+                    //}
+                        //}
+                    //}
+
 
                     if (!File.Exists(path))
                     {
@@ -376,7 +399,7 @@ namespace MonoGameClient
                         //If Login is selected
                         if (loginBool == true)
                         {
-                            spriteBatch.DrawString(InGameFont, playerName, new Vector2(150, 150), Color.White);
+                            spriteBatch.DrawString(InGameFont, playerName, new Vector2(150, 50), Color.White);
                         }
 
                         if (AchievementsBool == true)
