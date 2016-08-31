@@ -106,6 +106,16 @@ namespace MonoGameClient
             //Notification
             previousSpawnTime = new TimeSpan(0);
             collectableSpawnTime = new TimeSpan(15);
+
+            ////Notification
+            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
+            {
+                foreach (Check c in callback.Result)
+                {
+                    WriteNote = c.WriteNote;
+                    noteRec.Location = c.PosNote;
+                }
+            }).Wait();
         }
 
         private void recieved_a_message(Point obj)
@@ -164,7 +174,6 @@ namespace MonoGameClient
             int randno = rno.Next(7, 12);
             int maxx = GraphicsDevice.Viewport.Width - 20;
             int maxy = GraphicsDevice.Viewport.Height - 20;
-            IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
 
             //10 Sec Messsage
             mesTex = Content.Load<Texture2D>("Textures/Thanks");
@@ -176,17 +185,9 @@ namespace MonoGameClient
             colectableTimer = new Timer(10000);
             noteTimer = new Timer(5000);
 
-            proxy.Invoke<List<Check>>("getNote").ContinueWith((callback) =>
-                {
-                    foreach (Check c in callback.Result)
-                    {
-                        WriteNote = c.WriteNote;
-                        noteRec.Location = c.PosNote;
-                    }
-                }).Wait();
-
             for (int i = r.Next(1, 5); i > 0; i--)
             {
+                IncreaseScore = new SimpleSprite(Content.Load<Texture2D>(@"Textures/Increase"), new Vector2(r.Next(maxx), r.Next(maxy)));
                 IncreaseCollectables.Add(IncreaseScore);
             }
 
